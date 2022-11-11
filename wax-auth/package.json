@@ -1,5 +1,5 @@
 {
-  "name": "wax-auth",
+  "name": "@nefty/wax-auth",
   "version": "0.4.4",
   "description": "Fast, costless authentication flow for the Wax blockchain",
   "main": "lib/index.js",
