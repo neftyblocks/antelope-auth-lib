@@ -83,22 +83,29 @@ var InvalidProofError = /** @class */ (function (_super) {
 }(Error));
 exports.InvalidProofError = InvalidProofError;
 var WaxAuthServer = /** @class */ (function () {
-    function WaxAuthServer(rpcUrl, chainId) {
+    function WaxAuthServer(rpcUrl, chainId, actionName, nonceParamName) {
         this.chainId = '1064487b3cd1a897ce03ae5b6a865651747e2e152090f99c1d19d44e01aea5a4';
+        this.actionName = 'requestrand';
+        this.nonceParamName = 'assoc_id';
         this.endpoint = new eosjs_1.JsonRpc(rpcUrl !== null && rpcUrl !== void 0 ? rpcUrl : 'https://wax.greymass.com', { fetch: node_fetch_1.default });
         var signatureProvider = new eosjs_jssig_1.JsSignatureProvider([]);
         this.api = new eosjs_1.Api({ rpc: this.endpoint, signatureProvider: signatureProvider });
         if (chainId)
             this.chainId = chainId;
+        if (actionName)
+            this.actionName = actionName;
+        if (nonceParamName)
+            this.nonceParamName = nonceParamName;
     }
     WaxAuthServer.prototype.generateNonce = function () {
-        var nonce = blakejs_1.blake2b(crypto_1.randomBytes(32), undefined, 32);
+        var nonce = (0, blakejs_1.blake2b)((0, crypto_1.randomBytes)(32), undefined, 32);
         return getInt64StrFromUint8Array(nonce);
     };
     WaxAuthServer.prototype.verifyNonce = function (_a) {
         var waxAddress = _a.waxAddress, proof = _a.proof, nonce = _a.nonce;
         return __awaiter(this, void 0, void 0, function () {
             var arr, key, uarr, buf, data, recoveredKeys, claimedUser, claimedUserKeys_1, match_1, actions, action, transactionNonce;
+            var _this = this;
             return __generator(this, function (_b) {
                 switch (_b.label) {
                     case 0:
@@ -142,10 +149,10 @@ var WaxAuthServer = /** @class */ (function () {
                         return [4 /*yield*/, this.api.deserializeActions(this.api.deserializeTransaction(uarr).actions)];
                     case 2:
                         actions = _b.sent();
-                        action = actions.find(function (a) { return a.name === 'requestrand'; });
+                        action = actions.find(function (a) { return a.name === _this.actionName; });
                         if (!action)
                             return [2 /*return*/, false];
-                        transactionNonce = action.data.assoc_id;
+                        transactionNonce = action.data[this.nonceParamName];
                         if (nonce !== transactionNonce) {
                             return [2 /*return*/, false];
                         }

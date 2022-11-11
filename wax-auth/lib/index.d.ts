@@ -14,7 +14,9 @@ export declare class WaxAuthServer {
     endpoint: JsonRpc;
     api: Api;
     chainId: string;
-    constructor(rpcUrl?: string, chainId?: string);
+    actionName: string;
+    nonceParamName: string;
+    constructor(rpcUrl?: string, chainId?: string, actionName?: string, nonceParamName?: string);
     generateNonce(): string;
     verifyNonce({ waxAddress, proof, nonce }: NonceVerificationParams): Promise<boolean>;
 }

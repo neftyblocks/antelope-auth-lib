@@ -1,6 +1,6 @@
 {
   "name": "wax-auth",
-  "version": "0.4.3",
+  "version": "0.4.4",
   "description": "Fast, costless authentication flow for the Wax blockchain",
   "main": "lib/index.js",
   "scripts": {
@@ -19,9 +19,9 @@
     "typescript": "^4.3.4"
   },
   "dependencies": {
-    "blakejs": "^1.1.1",
-    "eosjs": "^22.0.0",
-    "node-fetch": "^2.6.1"
+    "blakejs": "^1.2.1",
+    "eosjs": "^22.1.0",
+    "node-fetch": "^2.6.7"
   },
   "repository": {
     "type": "git",

@@ -34,12 +34,17 @@ export class WaxAuthServer {
   endpoint: JsonRpc;
   api: Api;
   chainId: string = '1064487b3cd1a897ce03ae5b6a865651747e2e152090f99c1d19d44e01aea5a4';
+  actionName: string = 'requestrand';
+  nonceParamName: string = 'assoc_id';
 
-  constructor(rpcUrl?: string, chainId?: string) {
+
+  constructor(rpcUrl?: string, chainId?: string, actionName?: string, nonceParamName?: string) {
     this.endpoint = new JsonRpc(rpcUrl ?? 'https://wax.greymass.com', { fetch });
     const signatureProvider = new JsSignatureProvider([]);
     this.api = new Api({ rpc: this.endpoint, signatureProvider });
     if (chainId) this.chainId = chainId;
+    if (actionName) this.actionName = actionName;
+    if (nonceParamName) this.nonceParamName = nonceParamName;
   }
 
   generateNonce(): string {
@@ -97,9 +102,9 @@ export class WaxAuthServer {
       const actions = await this.api.deserializeActions(
         this.api.deserializeTransaction(uarr).actions,
       );
-      const action = actions.find((a) => a.name === 'requestrand');
+      const action = actions.find((a) => a.name === this.actionName);
       if (!action) return false;
-      const transactionNonce = action.data.assoc_id;
+      const transactionNonce = action.data[this.nonceParamName];
 
       if (nonce !== transactionNonce) {
         return false;
