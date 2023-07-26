@@ -1,4 +1,8 @@
-import { Signature, PublicKey, JsSignatureProvider } from "eosjs/dist/eosjs-jssig";
+import {
+  Signature,
+  PublicKey,
+  JsSignatureProvider,
+} from "eosjs/dist/eosjs-jssig";
 import { blake2b } from "blakejs";
 import { Api, JsonRpc } from "eosjs";
 import fetch from "node-fetch";
@@ -15,14 +19,14 @@ interface NonceVerificationParams {
 
 const bytesToHex = (bytes: Uint8Array) => {
   return Array.prototype.map
-    .call(bytes, (x) => ('00' + x.toString(16)).slice(-2))
-    .join('')
+    .call(bytes, (x) => ("00" + x.toString(16)).slice(-2))
+    .join("")
     .toUpperCase();
 };
 const getInt64StrFromUint8Array = (ba: Uint8Array) => {
   const hex = bytesToHex(ba);
-  const bi = BigInt('0x' + hex);
-  const max = BigInt('0x7FFFFFFFFFFFFFFF');
+  const bi = BigInt("0x" + hex);
+  const max = BigInt("0x7FFFFFFFFFFFFFFF");
   return (bi % max).toString();
 };
 
@@ -33,13 +37,20 @@ export class InvalidProofError extends Error {
 export class WaxAuthServer {
   endpoint: JsonRpc;
   api: Api;
-  chainId: string = '1064487b3cd1a897ce03ae5b6a865651747e2e152090f99c1d19d44e01aea5a4';
-  actionName: string = 'requestrand';
-  nonceParamName: string = 'assoc_id';
+  chainId: string =
+    "1064487b3cd1a897ce03ae5b6a865651747e2e152090f99c1d19d44e01aea5a4";
+  actionName: string = "requestrand";
+  nonceParamName: string = "assoc_id";
 
-
-  constructor(rpcUrl?: string, chainId?: string, actionName?: string, nonceParamName?: string) {
-    this.endpoint = new JsonRpc(rpcUrl ?? 'https://wax.greymass.com', { fetch });
+  constructor(
+    rpcUrl?: string,
+    chainId?: string,
+    actionName?: string,
+    nonceParamName?: string
+  ) {
+    this.endpoint = new JsonRpc(rpcUrl ?? "https://wax.greymass.com", {
+      fetch,
+    });
     const signatureProvider = new JsSignatureProvider([]);
     this.api = new Api({ rpc: this.endpoint, signatureProvider });
     if (chainId) this.chainId = chainId;
@@ -55,7 +66,7 @@ export class WaxAuthServer {
   async verifyNonce({
     waxAddress,
     proof,
-    nonce
+    nonce,
   }: NonceVerificationParams): Promise<boolean> {
     if (!proof || !proof.signatures.length || !proof.serializedTransaction) {
       throw new InvalidProofError();
@@ -69,17 +80,15 @@ export class WaxAuthServer {
     const buf = Buffer.from(uarr);
 
     const data = Buffer.concat([
-      Buffer.from(this.chainId, 'hex'),
+      Buffer.from(this.chainId, "hex"),
       buf,
       Buffer.from(new Uint8Array(32)),
     ]);
 
-    const recoveredKeys: string[] = [];
+    const recoveredKeys: PublicKey[] = [];
     proof.signatures.forEach((sigstr: string) => {
       const sig = Signature.fromString(sigstr);
-      recoveredKeys.push(
-        PublicKey.fromString(sig.recover(data).toString()).toLegacyString(),
-      );
+      recoveredKeys.push(PublicKey.fromString(sig.recover(data).toString()));
     });
 
     const claimedUser = await this.endpoint.get_account(waxAddress);
@@ -92,7 +101,8 @@ export class WaxAuthServer {
       let match = false;
       recoveredKeys.forEach((rk) => {
         claimedUserKeys.forEach((ck) => {
-          if (rk == ck) match = true;
+          const pk = PublicKey.fromString(ck);
+          if (rk.toString() == pk.toString()) match = true;
         });
       });
       if (!match) {
@@ -100,7 +110,7 @@ export class WaxAuthServer {
       }
 
       const actions = await this.api.deserializeActions(
-        this.api.deserializeTransaction(uarr).actions,
+        this.api.deserializeTransaction(uarr).actions
       );
       const action = actions.find((a) => a.name === this.actionName);
       if (!action) return false;
